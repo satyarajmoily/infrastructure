@@ -14,8 +14,12 @@ platform_agents:
       - "local_environment_setup"
     target_repositories: "all"  # Can work on any configured repository
     environment:
-      - "LLM_MODEL=gpt-4o"
+      # LLM Configuration - Coding Agent uses GPT-4o for code generation
+      - "LLM_PROVIDER=openai"
+      - "LLM_MODEL=gpt-4.1-nano-2025-04-14"
       - "LLM_TEMPERATURE=0.1"
+      - "LLM_MAX_TOKENS=4000"
+      - "LLM_TIMEOUT=60"
       - "WORKSPACE_BASE_PATH=/tmp/coding-agent-workspaces"
     volumes:
       - "coding-agent-workspaces:/tmp/coding-agent-workspaces"
@@ -40,6 +44,12 @@ platform_agents:
       - "infrastructure_management"
     target_repositories: "all"  # Can monitor any configured repository
     environment:
+      # LLM Configuration - DevOps Agent uses GPT-4 for infrastructure reasoning
+      - "LLM_PROVIDER=openai"
+      - "LLM_MODEL=gpt-4.1-nano-2025-04-14"
+      - "LLM_TEMPERATURE=0.1"
+      - "LLM_MAX_TOKENS=4000"
+      - "LLM_TIMEOUT=60"
       - "SAFETY_MODE=true"
       - "MONITORING_INTERVAL=30"
       - "PROMETHEUS_URL=http://prometheus:9090"
@@ -64,6 +74,12 @@ future_agents:
       - "security_fixes"
       - "compliance_checking"
     target_repositories: "all"
+    environment:
+      # LLM Configuration - Security Agent could use Claude for security analysis
+      - "LLM_PROVIDER=anthropic"
+      - "LLM_MODEL=claude-3-sonnet-20240229"
+      - "LLM_TEMPERATURE=0.0"
+      - "LLM_MAX_TOKENS=3000"
     
   testing-ai-agent:
     enabled: false
@@ -73,6 +89,12 @@ future_agents:
       - "test_automation"
       - "performance_testing"
     target_repositories: "all"
+    environment:
+      # LLM Configuration - Testing Agent uses GPT-4o-mini for cost efficiency
+      - "LLM_PROVIDER=openai"
+      - "LLM_MODEL=gpt-4o-mini"
+      - "LLM_TEMPERATURE=0.2"
+      - "LLM_MAX_TOKENS=2000"
 
 # Agent startup behavior
 startup:

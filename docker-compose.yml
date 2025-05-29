@@ -48,6 +48,10 @@ services:
       - PLATFORM_CONFIG=/config/platform.yml
       - REPOSITORIES_CONFIG=/config/repositories.yml
       - AGENTS_CONFIG=/config/agents.yml
+      - SAFETY_MODE=true
+      - MONITORING_INTERVAL=30
+      - PROMETHEUS_URL=http://prometheus:9090
+      - ALERTMANAGER_URL=http://alertmanager:9093
     volumes:
       - ./logs/agent:/app/logs
       - ./config:/config
