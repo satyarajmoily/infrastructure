@@ -7,19 +7,6 @@ platform:
   description: "Generic AI agent team that can manage any repository"
 
 target_repositories:
-  test-webapp:
-    github_url: "https://github.com/test/webapp.git"
-    type: "react"
-    port: 3000
-    health_endpoint: "/health"
-    coding_enabled: true
-    monitoring_enabled: true
-    auto_recovery: true
-    test_command: "npm test"
-    description: "Added via add-repository script"
-    added_date: "2025-05-29"
-    added_by: "satyarajmoily"
-
   market-predictor:
     github_url: "https://github.com/satyarajmoily/market-predictor.git"
     type: "fastapi"

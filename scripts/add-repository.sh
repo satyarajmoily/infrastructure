@@ -69,28 +69,6 @@ case $REPO_TYPE in
         ;;
 esac
 
-# Create repository configuration entry
-REPO_CONFIG="
-  $REPO_NAME:
-    github_url: \"$REPO_URL\"
-    type: \"$REPO_TYPE\"
-    port: $REPO_PORT
-    health_endpoint: \"$HEALTH_ENDPOINT\""
-
-if [ -n "$METRICS_ENDPOINT" ]; then
-    REPO_CONFIG="$REPO_CONFIG
-    metrics_endpoint: \"$METRICS_ENDPOINT\""
-fi
-
-REPO_CONFIG="$REPO_CONFIG
-    coding_enabled: true
-    monitoring_enabled: true
-    auto_recovery: true
-    test_command: \"$TEST_COMMAND\"
-    description: \"Added via add-repository script\"
-    added_date: \"$(date '+%Y-%m-%d')\"
-    added_by: \"$(whoami)\""
-
 echo "📝 Adding to persistent configuration..."
 
 # Remove existing entry if updating
@@ -99,14 +77,47 @@ if grep -q "^  $REPO_NAME:" "$CONFIG_DIR/repositories.yml"; then
     sed -i '' "/^  $REPO_NAME:/,/^  [a-zA-Z]/{ /^  [a-zA-Z]/!d; /^  $REPO_NAME:/d; }" "$CONFIG_DIR/repositories.yml"
 fi
 
-# Add new repository configuration
-# Find the line with "target_repositories:" and add after it
-awk -v repo_config="$REPO_CONFIG" '
-    /^target_repositories:/ { print; print repo_config; next }
+# Create a temporary file with the new repository configuration
+cat > "$CONFIG_DIR/new_repo.tmp" << EOF
+  $REPO_NAME:
+    github_url: "$REPO_URL"
+    type: "$REPO_TYPE"
+    port: $REPO_PORT
+    health_endpoint: "$HEALTH_ENDPOINT"
+EOF
+
+# Add metrics endpoint if it exists
+if [ -n "$METRICS_ENDPOINT" ]; then
+    echo "    metrics_endpoint: \"$METRICS_ENDPOINT\"" >> "$CONFIG_DIR/new_repo.tmp"
+fi
+
+# Add the rest of the configuration
+cat >> "$CONFIG_DIR/new_repo.tmp" << EOF
+    coding_enabled: true
+    monitoring_enabled: true
+    auto_recovery: true
+    test_command: "$TEST_COMMAND"
+    description: "Added via add-repository script"
+    added_date: "$(date '+%Y-%m-%d')"
+    added_by: "$(whoami)"
+EOF
+
+# Insert the new configuration after "target_repositories:"
+awk '
+    /^target_repositories:/ { 
+        print
+        while ((getline line < "'"$CONFIG_DIR/new_repo.tmp"'") > 0) {
+            print line
+        }
+        close("'"$CONFIG_DIR/new_repo.tmp"'")
+        print ""
+        next 
+    }
     { print }
 ' "$CONFIG_DIR/repositories.yml" > "$CONFIG_DIR/repositories.yml.tmp"
 
 mv "$CONFIG_DIR/repositories.yml.tmp" "$CONFIG_DIR/repositories.yml"
+rm "$CONFIG_DIR/new_repo.tmp"
 
 echo "✅ Repository '$REPO_NAME' added to persistent configuration"
 
@@ -126,7 +137,7 @@ fi
 echo "🔄 Restarting agents to load new repository..."
 cd "$(dirname "$SCRIPT_DIR")"
 
-if docker-compose ps | grep -q "Up"; then
+if docker-compose ps 2>/dev/null | grep -q "Up"; then
     echo "🔄 Restarting AI agents..."
     docker-compose restart coding-ai-agent devops-ai-agent
     
@@ -135,13 +146,13 @@ if docker-compose ps | grep -q "Up"; then
     
     # Verify agents are healthy
     echo "🩺 Verifying agent health..."
-    if curl -s -f http://localhost:8002/health > /dev/null; then
+    if curl -s -f http://localhost:8002/health > /dev/null 2>&1; then
         echo "✅ Coding AI Agent is healthy"
     else
         echo "⚠️  Coding AI Agent health check failed"
     fi
     
-    if curl -s -f http://localhost:8001/health > /dev/null; then
+    if curl -s -f http://localhost:8001/health > /dev/null 2>&1; then
         echo "✅ DevOps AI Agent is healthy"
     else
         echo "⚠️  DevOps AI Agent health check failed"
