@@ -126,6 +126,7 @@ echo "💡 USEFUL COMMANDS:"
 echo "   Add Repository:      ./scripts/add-repository.sh <name> <url> <type> <port>"
 echo "   List Repositories:   ./scripts/list-repositories.sh"
 echo "   Stop Platform:       ./scripts/stop-platform.sh"
+echo "   Restart Platform:    ./scripts/restart-platform.sh [all|service-name]"
 echo "   View Logs:           docker-compose logs -f [service-name]"
 echo "   Restart Service:     docker-compose restart [service-name]"
 
