@@ -1,0 +1,121 @@
+# AI Agent Platform - Master Configuration
+# Single source of truth for all agent configurations, repositories, and credentials
+
+platform:
+  name: "Autonomous Trading Builder"
+  version: "1.0.0"
+  environment: "development"
+  
+# Centralized Authentication & API Keys
+# These will be read by all agents to avoid duplication
+credentials:
+  github:
+    token: "${GITHUB_TOKEN}"  # Set in infrastructure/.env
+    user_name: "satyarajmoily"
+    user_email: "satyarajmoily@gmail.com"
+  
+  llm:
+    openai_api_key: "${OPENAI_API_KEY}"  # Set in infrastructure/.env
+    anthropic_api_key: "${ANTHROPIC_API_KEY:-}"  # Optional
+    provider: "openai"
+    model: "gpt-4"
+    temperature: 0.1
+    max_tokens: 4000
+    timeout: 60
+
+# Centralized Service Configuration
+services:
+  # Internal services that agents monitor/interact with
+  prometheus:
+    url: "http://prometheus:9090"
+    enabled: true
+  
+  alertmanager:
+    url: "http://alertmanager:9093"
+    enabled: true
+  
+  grafana:
+    url: "http://grafana:3000"
+    enabled: true
+
+# Agent Global Settings
+agent_settings:
+  log_level: "INFO"
+  safety_mode: true
+  learning_enabled: true
+  fallback_enabled: true
+  
+  # Shared file type restrictions
+  allowed_file_types:
+    - ".py"
+    - ".md" 
+    - ".txt"
+    - ".json"
+    - ".yml"
+    - ".yaml"
+    - ".toml"
+    - ".js"
+    - ".ts"
+    - ".jsx"
+    - ".tsx"
+  
+  # CORS settings for all agents
+  cors_origins:
+    - "*"
+
+# Repository Access Configuration
+# All agents will have access to ALL configured repositories
+repository_access:
+  # Default repositories that all agents can work with
+  default_repositories:
+    - "satyarajmoily/market-predictor"
+    - "satyarajmoily/devops-ai-agent" 
+    - "satyarajmoily/coding-ai-agent"
+  
+  # Additional repositories (loaded from repositories.yml)
+  load_from_config: true
+  config_file: "/config/repositories.yml"
+
+# Agent-Specific Configurations
+agents:
+  coding-ai-agent:
+    enabled: true
+    workspace_path: "/tmp/coding-agent-workspaces"
+    max_concurrent_tasks: 3
+    workflow_timeout: 1800
+    testing_timeout: 600
+    cleanup_workspaces: true
+    enable_sandboxing: true
+    max_workspace_size: "1GB"
+    docker_image_base: "python:3.9-slim"
+    
+  devops-ai-agent:
+    enabled: true
+    monitoring_interval: 30
+    max_actions_per_cycle: 3
+    health_check_timeout: 10
+    metrics_cache_ttl: 60
+    enable_testing: true
+    test_timeout: 300
+    
+  market-predictor:
+    enabled: true
+    type: "target_service"
+    port: 8000
+    health_endpoint: "/health"
+    metrics_endpoint: "/metrics"
+
+# Network and Infrastructure Settings
+infrastructure:
+  network_name: "trading-network"
+  subnet: "172.20.0.0/16"
+  
+  volumes:
+    coding_agent_workspaces: "coding-agent-workspaces"
+    prometheus_data: "prometheus-data"
+    grafana_data: "grafana-data"
+    alertmanager_data: "alertmanager-data"
+  
+  logs:
+    base_path: "./logs"
+    retention_days: 30 

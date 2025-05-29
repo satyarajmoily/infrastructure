@@ -7,6 +7,19 @@ platform:
   description: "Generic AI agent team that can manage any repository"
 
 target_repositories:
+  client-webapp:
+    github_url: "https://github.com/client/webapp.git"
+    type: "react"
+    port: 3000
+    health_endpoint: "/health"
+    coding_enabled: true
+    monitoring_enabled: true
+    auto_recovery: true
+    test_command: "npm test"
+    description: "Added via add-repository script"
+    added_date: "2025-05-29"
+    added_by: "satyarajmoily"
+
   test-webapp:
     github_url: "https://github.com/test/webapp.git"
     type: "react"
@@ -21,6 +34,19 @@ target_repositories:
     added_by: "satyarajmoily"
 
   market-predictor:
+
+  coding-ai-agent:
+    github_url: "https://github.com/satyarajmoily/coding-ai-agent.git"
+    type: "fastapi"
+    port: 8002
+    health_endpoint: "/health"
+    metrics_endpoint: "/metrics"
+    coding_enabled: false
+    monitoring_enabled: true
+    auto_recovery: true
+    description: "Coding AI Agent service"
+    added_date: "2025-05-29"
+    added_by: "setup-script"
     github_url: "https://github.com/satyarajmoily/market-predictor.git"
     type: "fastapi"
     port: 8000
@@ -32,16 +58,7 @@ target_repositories:
     description: "Bitcoin price prediction service"
     added_date: "2024-01-15"
     
-  # Additional repositories can be added via scripts/add-repository.sh
-  # Example:
-  # client-webapp:
-  #   github_url: "https://github.com/client/webapp.git"
-  #   type: "react"
-  #   port: 3000
-  #   health_endpoint: "/health"
-  #   coding_enabled: true
-  #   monitoring_enabled: false
-  #   added_date: "2024-01-16"
+  # Additional repositories can be added by editing this file manually
 
 # Repository type configurations
 repository_types:

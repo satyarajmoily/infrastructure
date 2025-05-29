@@ -28,8 +28,7 @@ REPO_COUNT=$(grep -c "^  [a-zA-Z].*:" "$CONFIG_DIR/repositories.yml" 2>/dev/null
 if [ "$REPO_COUNT" -eq 0 ]; then
     echo "📭 No repositories configured yet"
     echo ""
-    echo "💡 Add a repository with:"
-    echo "   ./scripts/add-repository.sh \"repo-name\" \"github-url\" \"repo-type\" \"port\""
+    echo "💡 Add a repository by editing config/repositories.yml manually"
     exit 0
 fi
 
@@ -141,7 +140,7 @@ fi
 
 echo ""
 echo "💡 COMMANDS:"
-echo "   Add Repository:    ./scripts/add-repository.sh <name> <url> <type> <port>"
-echo "   Remove Repository: ./scripts/remove-repository.sh <name>"
+echo "   Add Repository:    Edit config/repositories.yml manually"
+echo "   Remove Repository: Edit config/repositories.yml manually"
 echo "   Start Agents:      docker-compose up -d"
 echo "   Stop Agents:       docker-compose down" 

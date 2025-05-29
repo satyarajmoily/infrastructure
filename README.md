@@ -76,8 +76,26 @@ curl http://localhost:8000/health  # Target Service (if running)
 
 ### Add New Repository (Persistent)
 ```bash
-# Add any repository to be managed by AI agents
-./scripts/add-repository.sh "webapp" "https://github.com/user/webapp.git" "react" "3000"
+# Add any repository by editing the configuration file
+vim config/repositories.yml
+
+# Add your repository configuration:
+# target_repositories:
+#   webapp:
+#     github_url: "https://github.com/user/webapp.git"
+#     type: "react"
+#     port: 3000
+#     health_endpoint: "/health"
+#     coding_enabled: true
+#     monitoring_enabled: true
+
+# Commit the changes
+git add config/repositories.yml
+git commit -m "feat: Add webapp repository"
+git push origin main
+
+# Apply changes
+docker-compose restart coding-ai-agent devops-ai-agent
 
 # Repository is now permanently configured
 # Agents will automatically manage it across all restarts
@@ -185,8 +203,11 @@ platform_agents:
 
 ### Working with Target Repositories
 ```bash
-# 1. Add repository to platform
-./scripts/add-repository.sh "new-service" "https://github.com/user/service.git" "nodejs" "3001"
+# 1. Add repository to platform by editing config/repositories.yml
+# Add your repository configuration manually, then:
+git add config/repositories.yml
+git commit -m "feat: Add new-service repository"
+docker-compose restart coding-ai-agent devops-ai-agent
 
 # 2. Agents automatically discover and start managing the repository
 
@@ -240,7 +261,9 @@ curl http://localhost:8002/api/v1/code/task_abc123/status
 ./scripts/test-infrastructure.sh
 
 # Test repository management
-./scripts/add-repository.sh "test-repo" "https://github.com/test/repo.git" "python" "8080"
+# Edit config/repositories.yml to add test-repo manually
+# git add config/repositories.yml && git commit -m "Add test repo"
+# docker-compose restart coding-ai-agent devops-ai-agent
 ./scripts/list-repositories.sh
 ```
 
@@ -349,8 +372,9 @@ cd infrastructure
 cp .env.template .env
 # Edit .env with your API keys
 
-# Add your first repository
-./scripts/add-repository.sh "my-project" "https://github.com/user/project.git" "fastapi" "8000"
+# Add your first repository - edit config/repositories.yml manually
+# git add config/repositories.yml && git commit -m "Add my-project"
+# docker-compose restart coding-ai-agent devops-ai-agent
 
 # Start the platform
 docker-compose up -d

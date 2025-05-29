@@ -35,7 +35,6 @@ run_test "docker-compose.yml exists" "[ -f docker-compose.yml ]"
 
 echo ""
 echo "📋 SCRIPT VALIDATION"
-run_test "add-repository.sh executable" "[ -x scripts/add-repository.sh ]"
 run_test "list-repositories.sh executable" "[ -x scripts/list-repositories.sh ]"
 
 echo ""

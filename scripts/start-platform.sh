@@ -123,7 +123,7 @@ echo "📊 REPOSITORY STATUS:"
 
 echo ""
 echo "💡 USEFUL COMMANDS:"
-echo "   Add Repository:      ./scripts/add-repository.sh <name> <url> <type> <port>"
+echo "   Add Repository:      Edit config/repositories.yml manually"
 echo "   List Repositories:   ./scripts/list-repositories.sh"
 echo "   Stop Platform:       ./scripts/stop-platform.sh"
 echo "   Restart Platform:    ./scripts/restart-platform.sh [all|service-name]"
