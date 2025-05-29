@@ -1,0 +1,208 @@
+groups:
+  - name: service_availability
+    rules:
+      # Service Down Alerts
+      - alert: MarketPredictorDown
+        expr: up{job="market-predictor"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: market-predictor
+          alert_type: availability
+        annotations:
+          summary: "Market Predictor service is down"
+          description: "Market Predictor service has been down for more than 30 seconds"
+          action_required: "restart_service"
+          runbook_url: "https://docs.company.com/runbooks/market-predictor"
+
+      - alert: DevOpsAIAgentDown
+        expr: up{job="devops-ai-agent"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: devops-ai-agent
+          alert_type: availability
+        annotations:
+          summary: "DevOps AI Agent service is down"
+          description: "DevOps AI Agent service has been down for more than 30 seconds"
+          action_required: "restart_service"
+
+      - alert: CodingAIAgentDown
+        expr: up{job="coding-ai-agent"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: coding-ai-agent
+          alert_type: availability
+        annotations:
+          summary: "Coding AI Agent service is down"
+          description: "Coding AI Agent service has been down for more than 30 seconds"
+          action_required: "restart_service"
+
+  - name: service_performance
+    rules:
+      # High Response Time Alerts
+      - alert: MarketPredictorHighResponseTime
+        expr: http_request_duration_seconds{job="market-predictor", quantile="0.95"} > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: market-predictor
+          alert_type: performance
+        annotations:
+          summary: "Market Predictor high response time"
+          description: "Market Predictor 95th percentile response time is {{ $value }}s"
+          action_required: "investigate_performance"
+
+      - alert: MarketPredictorVeryHighResponseTime
+        expr: http_request_duration_seconds{job="market-predictor", quantile="0.95"} > 10
+        for: 1m
+        labels:
+          severity: critical
+          service: market-predictor
+          alert_type: performance
+        annotations:
+          summary: "Market Predictor very high response time"
+          description: "Market Predictor 95th percentile response time is {{ $value }}s"
+          action_required: "restart_service"
+
+  - name: service_errors
+    rules:
+      # Error Rate Alerts
+      - alert: MarketPredictorHighErrorRate
+        expr: rate(http_requests_total{job="market-predictor",status=~"5.."}[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: warning
+          service: market-predictor
+          alert_type: errors
+        annotations:
+          summary: "Market Predictor high error rate"
+          description: "Market Predictor error rate is {{ $value }} errors per second"
+          action_required: "check_logs"
+
+      - alert: MarketPredictorCriticalErrorRate
+        expr: rate(http_requests_total{job="market-predictor",status=~"5.."}[5m]) > 0.5
+        for: 30s
+        labels:
+          severity: critical
+          service: market-predictor
+          alert_type: errors
+        annotations:
+          summary: "Market Predictor critical error rate"
+          description: "Market Predictor error rate is {{ $value }} errors per second"
+          action_required: "restart_service"
+
+  - name: resource_usage
+    rules:
+      # Memory Usage Alerts
+      - alert: HighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+          alert_type: resources
+        annotations:
+          summary: "High memory usage on {{ $labels.container_label_com_docker_compose_service }}"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+          action_required: "check_resource_usage"
+
+      - alert: CriticalMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.95
+        for: 1m
+        labels:
+          severity: critical
+          alert_type: resources
+        annotations:
+          summary: "Critical memory usage on {{ $labels.container_label_com_docker_compose_service }}"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+          action_required: "restart_service"
+
+  - name: health_checks
+    rules:
+      # Health Check Alerts
+      - alert: MarketPredictorHealthCheckFailing
+        expr: health_check_status{job="market-predictor"} != 1
+        for: 1m
+        labels:
+          severity: warning
+          service: market-predictor
+          alert_type: health
+        annotations:
+          summary: "Market Predictor health check failing"
+          description: "Market Predictor health check has been failing for 1 minute"
+          action_required: "check_service_health"
+
+      - alert: DevOpsAIAgentHealthCheckFailing
+        expr: health_check_status{job="devops-ai-agent"} != 1
+        for: 1m
+        labels:
+          severity: warning
+          service: devops-ai-agent
+          alert_type: health
+        annotations:
+          summary: "DevOps AI Agent health check failing"
+          description: "DevOps AI Agent health check has been failing for 1 minute"
+          action_required: "check_service_health"
+
+      - alert: CodingAIAgentHealthCheckFailing
+        expr: health_check_status{job="coding-ai-agent"} != 1
+        for: 1m
+        labels:
+          severity: warning
+          service: coding-ai-agent
+          alert_type: health
+        annotations:
+          summary: "Coding AI Agent health check failing"
+          description: "Coding AI Agent health check has been failing for 1 minute"
+          action_required: "check_service_health"
+
+  - name: disk_space
+    rules:
+      # Disk Space Alerts
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_free_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          alert_type: resources
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk space is below 10% on {{ $labels.device }}"
+          action_required: "cleanup_disk_space"
+
+      - alert: DiskSpaceCritical
+        expr: (node_filesystem_free_bytes / node_filesystem_size_bytes) < 0.05
+        for: 1m
+        labels:
+          severity: critical
+          alert_type: resources
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Disk space is below 5% on {{ $labels.device }}"
+          action_required: "emergency_cleanup"
+
+  - name: docker_container_health
+    rules:
+      # Container Health Alerts
+      - alert: ContainerRestarting
+        expr: increase(container_start_time_seconds[10m]) > 1
+        for: 0m
+        labels:
+          severity: warning
+          alert_type: container
+        annotations:
+          summary: "Container {{ $labels.container_label_com_docker_compose_service }} is restarting"
+          description: "Container has restarted {{ $value }} times in the last 10 minutes"
+          action_required: "investigate_container_issues"
+
+      - alert: ContainerKilled
+        expr: time() - container_last_seen > 60
+        for: 0m
+        labels:
+          severity: critical
+          alert_type: container
+        annotations:
+          summary: "Container {{ $labels.container_label_com_docker_compose_service }} killed"
+          description: "Container has been killed and not seen for over 1 minute"
+          action_required: "restart_container" 

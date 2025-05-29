@@ -1,0 +1,78 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+  external_labels:
+    cluster: 'autonomous-trading'
+    replica: 'prometheus-1'
+
+rule_files:
+  - "alert-rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Market Predictor Service
+  - job_name: 'market-predictor'
+    static_configs:
+      - targets: ['market-predictor:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # DevOps AI Agent Service (metrics disabled - using health checks instead)
+  # - job_name: 'devops-ai-agent'
+  #   static_configs:
+  #     - targets: ['devops-ai-agent:8001']
+  #   metrics_path: '/metrics'
+  #   scrape_interval: 10s
+  #   scrape_timeout: 5s
+  #   honor_labels: true
+  #   params:
+  #     format: ['prometheus']
+
+  # Coding AI Agent Service
+  - job_name: 'coding-ai-agent'
+    static_configs:
+      - targets: ['coding-ai-agent:8002']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+
+  # Node Exporter (if available)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Docker Container Metrics (if available)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['docker-exporter:9323']
+    scrape_interval: 30s
+
+# Remote Write Configuration (for production use)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint"
+#     headers:
+#       Authorization: "Bearer <token>"
+
+# Storage and Web Configuration are handled via command-line flags in docker-compose.yml
+# storage.tsdb.retention.time: handled via --storage.tsdb.retention.time=7d
+# web.enable-lifecycle: handled via --web.enable-lifecycle
+# web.enable-admin-api: handled via --web.enable-admin-api 

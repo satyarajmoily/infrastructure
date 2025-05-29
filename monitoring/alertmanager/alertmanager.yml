@@ -1,0 +1,74 @@
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@autonomous-trading.local'
+
+route:
+  group_by: ['alertname', 'service']
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 12h
+  receiver: 'web.hook'
+  routes:
+    # Agent self-monitoring alerts - DO NOT send back to agent to prevent bootstrap paradox
+    - match:
+        service: devops-ai-agent
+      receiver: 'agent-self-monitoring'
+      group_wait: 0s
+      group_interval: 30s
+      repeat_interval: 10m
+      continue: false
+    
+    # Critical alerts go to agent immediately (except agent self-alerts)
+    - match:
+        severity: critical
+      receiver: 'agent-webhook'
+      group_wait: 0s
+      group_interval: 10s
+      repeat_interval: 5m
+      continue: true
+    
+    # Warning alerts go to agent with some delay for grouping
+    - match:
+        severity: warning
+      receiver: 'agent-webhook'
+      group_wait: 30s
+      group_interval: 2m
+      repeat_interval: 30m
+      continue: true
+
+receivers:
+  # Agent self-monitoring - log only, don't send back to agent
+  - name: 'agent-self-monitoring'
+    webhook_configs:
+      - url: 'http://httpbin.org/post'
+        send_resolved: true
+
+  # Default webhook (for testing)
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://devops-ai-agent:8001/webhook/alerts'
+        send_resolved: true
+        http_config:
+          bearer_token: 'agent-webhook-token-123'
+
+  # Agent webhook for regular alerts
+  - name: 'agent-webhook'
+    webhook_configs:
+      - url: 'http://devops-ai-agent:8001/webhook/alerts'
+        send_resolved: true
+        http_config:
+          bearer_token: 'agent-webhook-token-123'
+        max_alerts: 10
+
+# Inhibit rules to reduce noise
+inhibit_rules:
+  # Inhibit warning alerts if critical alert is firing for the same service
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['service', 'alertname']
+
+# Templates for customizing alert notifications (disabled for now)
+# templates:
+#   - '/etc/alertmanager/templates/*.tmpl' 

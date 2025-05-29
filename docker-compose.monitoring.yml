@@ -1,0 +1,117 @@
+# Complete Event-Driven Monitoring Stack
+version: '3.8'
+
+networks:
+  monitoring:
+    driver: bridge
+
+services:
+  # Market Predictor Service
+  market-predictor:
+    build:
+      context: ./market-predictor
+      dockerfile: Dockerfile
+    container_name: market-predictor
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - METRICS_ENABLED=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - monitoring
+
+  # DevOps AI Agent
+  devops-ai-agent:
+    build:
+      context: ./devops-ai-agent
+      dockerfile: Dockerfile
+    container_name: devops-ai-agent
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=production
+      - API_HOST=0.0.0.0
+      - API_PORT=8001
+      - MARKET_PREDICTOR_URL=http://market-predictor:8000
+      - SAFETY_MODE=true
+      - FALLBACK_ENABLED=false
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - market-predictor
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - monitoring
+
+  # Prometheus - Metrics Collection & Alerting
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./market-predictor/docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./market-predictor/docker/alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    depends_on:
+      - market-predictor
+    networks:
+      - monitoring
+
+  # Alertmanager - Alert Processing & Routing
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./market-predictor/docker/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    depends_on:
+      - devops-ai-agent
+    networks:
+      - monitoring
+
+  # Grafana - Visualization (Optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  alertmanager_data:
+  grafana_data: 
