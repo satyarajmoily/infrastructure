@@ -52,6 +52,12 @@ services:
       - MONITORING_INTERVAL=30
       - PROMETHEUS_URL=http://prometheus:9090
       - ALERTMANAGER_URL=http://alertmanager:9093
+      # LLM Configuration (temporary fix until universal config works)
+      - LLM_PROVIDER=openai
+      - LLM_MODEL=gpt-4.1-nano-2025-04-14
+      - LLM_TEMPERATURE=0.1
+      - LLM_MAX_TOKENS=4000
+      - LLM_TIMEOUT=60
     volumes:
       - ./logs/agent:/app/logs
       - ./config:/config
