@@ -12,15 +12,13 @@ services:
     container_name: market-predictor
     ports:
       - "8000:8000"
-    env_file:
-      - .env  # Centralized environment
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8000
       - SERVICE_NAME=market-predictor
     volumes:
       - ./logs/predictor:/app/logs
-      - ../market-predictor/src:/app/src
+      - ../market-predictor/.env:/app/.env:ro  # Mount agent's own .env file
     networks:
       - ai-agent-network
     restart: unless-stopped
@@ -39,28 +37,17 @@ services:
     container_name: devops-ai-agent
     ports:
       - "8001:8001"
-    env_file:
-      - .env  # Centralized environment
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8001
       - SERVICE_NAME=devops-ai-agent
-      - PLATFORM_CONFIG=/config/platform.yml
-      - REPOSITORIES_CONFIG=/config/repositories.yml
-      - AGENTS_CONFIG=/config/agents.yml
-      - SAFETY_MODE=true
-      - MONITORING_INTERVAL=30
+      # Docker network service URLs (override localhost URLs from .env)
       - PROMETHEUS_URL=http://prometheus:9090
       - ALERTMANAGER_URL=http://alertmanager:9093
-      # LLM Configuration (temporary fix until universal config works)
-      - LLM_PROVIDER=openai
-      - LLM_MODEL=gpt-4.1-nano-2025-04-14
-      - LLM_TEMPERATURE=0.1
-      - LLM_MAX_TOKENS=4000
-      - LLM_TIMEOUT=60
+      - MARKET_PREDICTOR_URL=http://market-predictor:8000
     volumes:
       - ./logs/agent:/app/logs
-      - ./config:/config
+      - ../devops-ai-agent/.env:/app/.env:ro  # Mount agent's own .env file
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - ai-agent-network
@@ -82,19 +69,14 @@ services:
     container_name: coding-ai-agent
     ports:
       - "8002:8002"
-    env_file:
-      - .env  # Centralized environment
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8002
       - SERVICE_NAME=coding-ai-agent
-      - PLATFORM_CONFIG=/config/platform.yml
-      - REPOSITORIES_CONFIG=/config/repositories.yml
-      - AGENTS_CONFIG=/config/agents.yml
       - WORKSPACE_BASE_PATH=/tmp/coding-agent-workspaces
     volumes:
       - ./logs/coding-agent:/app/logs
-      - ./config:/config
+      - ../coding-ai-agent/.env:/app/.env:ro  # Mount agent's own .env file
       - coding-agent-workspaces:/tmp/coding-agent-workspaces
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
