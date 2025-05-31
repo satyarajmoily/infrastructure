@@ -1,0 +1,272 @@
+# Universal Infrastructure Operations
+# Defines all available operations with parameters, validation, and schemas
+
+operations:
+  get_logs:
+    description: "Retrieve and analyze service logs with filtering capabilities"
+    category: "monitoring"
+    parameters:
+      target:
+        type: "string"
+        required: true
+        description: "Service name or container identifier"
+        examples: ["market-predictor", "coding-ai-agent", "devops-ai-agent"]
+      lines:
+        type: "integer"
+        default: 100
+        range: [1, 10000]
+        description: "Number of log lines to retrieve"
+      since:
+        type: "string"
+        default: null
+        examples: ["1h", "30m", "2d", "2024-01-01T00:00:00Z"]
+        description: "Time period or timestamp for log start"
+      level:
+        type: "string"
+        default: "all"
+        options: ["error", "warn", "info", "debug", "all"]
+        description: "Log level filter"
+      filter:
+        type: "string"
+        default: null
+        description: "Regex pattern to filter log content"
+      follow:
+        type: "boolean"
+        default: false
+        description: "Stream logs in real-time"
+      timestamps:
+        type: "boolean"
+        default: true
+        description: "Include timestamps in output"
+      source:
+        type: "string"
+        default: "all"
+        options: ["stdout", "stderr", "all"]
+        description: "Log source streams"
+    environments:
+      - "local_docker"
+      - "oracle_cloud"
+      - "kubernetes"
+    
+  check_resources:
+    description: "Monitor system and service resource usage with detailed metrics"
+    category: "monitoring"
+    parameters:
+      target:
+        type: "string"
+        required: true
+        description: "Service name or 'system' for host resources"
+        examples: ["market-predictor", "system", "all"]
+      metrics:
+        type: "array"
+        default: ["cpu", "memory", "disk", "network"]
+        options: ["cpu", "memory", "disk", "network", "io", "connections", "threads"]
+        description: "Resource metrics to collect"
+      duration:
+        type: "string"
+        default: "current"
+        examples: ["current", "5m", "1h", "1d"]
+        description: "Time range for metrics collection"
+      format:
+        type: "string"
+        default: "summary"
+        options: ["summary", "detailed", "json", "prometheus"]
+        description: "Output format preference"
+      threshold_alerts:
+        type: "boolean"
+        default: true
+        description: "Generate alerts for high usage"
+      historical:
+        type: "boolean"
+        default: false
+        description: "Include historical trend data"
+      per_process:
+        type: "boolean"
+        default: false
+        description: "Break down metrics by process"
+    environments:
+      - "local_docker"
+      - "oracle_cloud"
+      - "kubernetes"
+    
+  restart_service:
+    description: "Restart a service with configurable strategy and validation"
+    category: "management"
+    parameters:
+      target:
+        type: "string"
+        required: true
+        description: "Service name to restart"
+        examples: ["market-predictor", "coding-ai-agent"]
+      strategy:
+        type: "string"
+        default: "graceful"
+        options: ["graceful", "force", "rolling", "blue-green"]
+        description: "Restart strategy to use"
+      timeout:
+        type: "integer"
+        default: 30
+        range: [5, 300]
+        description: "Maximum wait time for restart (seconds)"
+      backup:
+        type: "boolean"
+        default: true
+        description: "Backup current state before restart"
+      health_check:
+        type: "boolean"
+        default: true
+        description: "Verify health after restart"
+      wait_for_ready:
+        type: "boolean"
+        default: true
+        description: "Wait until service is fully ready"
+      rollback_on_failure:
+        type: "boolean"
+        default: true
+        description: "Automatically rollback if restart fails"
+      notify:
+        type: "boolean"
+        default: true
+        description: "Send notifications about restart"
+    environments:
+      - "local_docker"
+      - "oracle_cloud"
+      - "kubernetes"
+    
+  execute_command:
+    description: "Execute custom commands for advanced diagnostics and operations"
+    category: "diagnostic"
+    parameters:
+      target:
+        type: "string"
+        required: true
+        description: "Service, container, or host to execute on"
+        examples: ["market-predictor", "system"]
+      command:
+        type: "string"
+        required: true
+        description: "Command to execute"
+        examples: ["ps aux", "netstat -tlnp", "df -h"]
+      timeout:
+        type: "integer"
+        default: 30
+        range: [1, 300]
+        description: "Command timeout (seconds)"
+      working_dir:
+        type: "string"
+        default: "/"
+        description: "Working directory for command"
+      user:
+        type: "string"
+        default: "root"
+        description: "User to run command as"
+      environment:
+        type: "object"
+        default: {}
+        description: "Environment variables for command"
+      capture_output:
+        type: "boolean"
+        default: true
+        description: "Capture and return command output"
+      background:
+        type: "boolean"
+        default: false
+        description: "Run command in background"
+    environments:
+      - "local_docker"
+      - "kubernetes"
+    
+  scale_service:
+    description: "Scale service instances up or down with validation"
+    category: "management"
+    parameters:
+      target:
+        type: "string"
+        required: true
+        description: "Service name to scale"
+      replicas:
+        type: "integer"
+        required: true
+        range: [0, 50]
+        description: "Target number of replicas"
+      strategy:
+        type: "string"
+        default: "gradual"
+        options: ["gradual", "immediate"]
+        description: "Scaling strategy"
+      health_check:
+        type: "boolean"
+        default: true
+        description: "Verify health during scaling"
+      timeout:
+        type: "integer"
+        default: 120
+        range: [30, 600]
+        description: "Maximum time to wait for scaling"
+    environments:
+      - "local_docker"
+      - "oracle_cloud"
+      - "kubernetes"
+    
+  health_check:
+    description: "Perform comprehensive health checks on services"
+    category: "monitoring"
+    parameters:
+      target:
+        type: "string"
+        required: true
+        description: "Service name to check"
+      endpoints:
+        type: "array"
+        default: ["/health"]
+        description: "Health check endpoints to test"
+      timeout:
+        type: "integer"
+        default: 10
+        range: [1, 60]
+        description: "Health check timeout (seconds)"
+      retries:
+        type: "integer"
+        default: 3
+        range: [1, 10]
+        description: "Number of retry attempts"
+      detailed:
+        type: "boolean"
+        default: false
+        description: "Include detailed diagnostic information"
+    environments:
+      - "local_docker"
+      - "oracle_cloud"
+      - "kubernetes"
+
+# Operation categories for organization
+categories:
+  monitoring:
+    description: "Operations for observing and analyzing system state"
+    operations: ["get_logs", "check_resources", "health_check"]
+    
+  management:
+    description: "Operations for controlling and modifying services"
+    operations: ["restart_service", "scale_service"]
+    
+  diagnostic:
+    description: "Operations for troubleshooting and investigation"
+    operations: ["execute_command"]
+
+# Global operation settings
+settings:
+  max_concurrent_operations: 5
+  default_timeout: 60
+  retry_attempts: 3
+  retry_delay: 5
+  
+  # Safety restrictions
+  safety_mode:
+    enabled: true
+    restricted_commands:
+      - "rm -rf"
+      - "dd if="
+      - "mkfs"
+      - "fdisk"
+    max_restart_frequency: 3  # per hour
+    require_confirmation: ["restart_service", "scale_service"] 

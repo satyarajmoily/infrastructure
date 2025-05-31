@@ -4,7 +4,7 @@
 platform:
   name: "Autonomous Trading Builder"
   version: "1.0.0"
-  environment: "development"
+  environment: "local_docker"
   
 # Centralized Authentication & API Keys
 # These will be read by all agents to avoid duplication
@@ -15,13 +15,9 @@ credentials:
     user_email: "satyarajmoily@gmail.com"
   
   llm:
+    # Only API keys - model configuration is agent-specific in agents.yml
     openai_api_key: "${OPENAI_API_KEY}"  # Set in infrastructure/.env
     anthropic_api_key: "${ANTHROPIC_API_KEY:-}"  # Optional
-    provider: "openai"
-    model: "gpt-4o"
-    temperature: 0.1
-    max_tokens: 4000
-    timeout: 60
 
 # Centralized Service Configuration
 services:

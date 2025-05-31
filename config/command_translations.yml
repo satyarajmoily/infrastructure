@@ -1,0 +1,193 @@
+# Command Translation Rules
+# Maps universal operations to environment-specific implementations
+
+translations:
+  local_docker:
+    get_logs:
+      base_command: "docker logs {target}"
+      parameter_mappings:
+        lines: "--tail {lines}"
+        since: "--since {since}"
+        follow: "--follow"
+        timestamps: "--timestamps"
+        source_stdout: ""
+        source_stderr: "2>&1"
+      post_processing:
+        filter: "| grep -E '{filter}'"
+        level_error: "| grep -E '(ERROR|FATAL|error|fatal)'"
+        level_warn: "| grep -E '(WARN|WARNING|warn|warning)'"
+        level_info: "| grep -E '(INFO|info)'"
+        level_debug: "| grep -E '(DEBUG|debug)'"
+      
+    check_resources:
+      summary: "docker stats --no-stream {target}"
+      detailed: "docker exec {target} bash -c 'ps aux && free -h && df -h'"
+      system: "docker system df && docker system events --since 1m --until now"
+      metrics_cpu: "docker stats --no-stream --format 'table {{{{.Container}}}}\\t{{{{.CPUPerc}}}}' {target}"
+      metrics_memory: "docker stats --no-stream --format 'table {{{{.Container}}}}\\t{{{{.MemUsage}}}}\\t{{{{.MemPerc}}}}' {target}"
+      
+    restart_service:
+      graceful: "docker restart {target}"
+      force: "docker kill {target} && docker start {target}"
+      rolling: "docker-compose restart {target}"
+      backup: "docker commit {target} {target}_backup_$(date +%Y%m%d_%H%M%S)"
+      
+    execute_command:
+      interactive: "docker exec -it {target} {command}"
+      non_interactive: "docker exec {target} {command}"
+      as_user: "docker exec -u {user} {target} {command}"
+      with_env: "docker exec {env_flags} {target} {command}"
+      
+    scale_service:
+      docker_compose: "docker-compose up -d --scale {target}={replicas}"
+      docker_swarm: "docker service scale {target}={replicas}"
+      
+    health_check:
+      basic: "docker exec {target} curl -f {endpoint} || echo 'Health check failed'"
+      detailed: "docker inspect {target} --format '{{{{.State.Health.Status}}}}'"
+      endpoint_test: "curl -f -m {timeout} http://localhost:{port}{endpoint}"
+
+  oracle_cloud:
+    get_logs:
+      api_method: "oci.logging.search_logs"
+      parameters:
+        log_group_id: "{target}_log_group"
+        time_start: "{since}"
+        time_end: "now"
+        limit: "{lines}"
+        search_query: "{filter}"
+      post_processing:
+        level_filter: "level:{level}"
+        
+    check_resources:
+      api_method: "oci.monitoring.list_metrics"
+      parameters:
+        namespace: "oci_containerinstances"
+        resource_group: "{target}"
+        metric_names: "{metrics}"
+        start_time: "{duration}"
+        
+    restart_service:
+      api_method: "oci.container_instances.restart_container_instance"
+      parameters:
+        instance_id: "{target}_instance_id"
+        restart_type: "{strategy}"
+        
+    scale_service:
+      api_method: "oci.container_instances.update_container_instance"
+      parameters:
+        instance_id: "{target}_instance_id"
+        shape_config:
+          ocpus: "{replicas}"
+          
+    health_check:
+      api_method: "oci.health_checks.create_http_monitor"
+      parameters:
+        targets: ["{target_url}"]
+        path: "{endpoint}"
+        timeout_in_seconds: "{timeout}"
+
+  kubernetes:
+    get_logs:
+      base_command: "kubectl logs"
+      resource_types:
+        deployment: "deployment/{target}"
+        pod: "pod/{target}"
+        service: "service/{target}"
+      parameter_mappings:
+        lines: "--tail={lines}"
+        since: "--since={since}"
+        follow: "--follow"
+        timestamps: "--timestamps"
+        container: "-c {container}"
+      post_processing:
+        filter: "| grep -E '{filter}'"
+        
+    check_resources:
+      summary: "kubectl top pods -l app={target}"
+      detailed: "kubectl describe pod -l app={target}"
+      metrics: "kubectl get --raw /apis/metrics.k8s.io/v1beta1/pods"
+      system: "kubectl top nodes"
+      
+    restart_service:
+      graceful: "kubectl rollout restart deployment/{target}"
+      rolling: "kubectl rollout restart deployment/{target} --timeout={timeout}s"
+      force: "kubectl delete pod -l app={target} --force --grace-period=0"
+      
+    execute_command:
+      pod_exec: "kubectl exec -it {target} -- {command}"
+      deployment_exec: "kubectl exec -it deployment/{target} -- {command}"
+      
+    scale_service:
+      horizontal: "kubectl scale deployment/{target} --replicas={replicas}"
+      autoscale: "kubectl autoscale deployment/{target} --min={min_replicas} --max={max_replicas}"
+      
+    health_check:
+      readiness: "kubectl get pods -l app={target} -o jsonpath='{{{{.items[*].status.conditions[?(@.type==\"Ready\")].status}}}}'"
+      liveness: "kubectl describe pod -l app={target} | grep -A5 Liveness"
+
+# Environment-specific command builders
+builders:
+  local_docker:
+    service_name_resolution:
+      method: "docker_compose"
+      service_prefix: ""
+      service_suffix: ""
+      
+    volume_mounts:
+      workspace: "/tmp/workspace"
+      config: "/config"
+      
+    network_access:
+      bridge: "bridge"
+      host: "host"
+      
+  oracle_cloud:
+    resource_identification:
+      instance_id_pattern: "ocid1.containerinstance.{region}.{tenancy}.{unique_id}"
+      log_group_pattern: "ocid1.loggroup.{region}.{tenancy}.{unique_id}"
+      
+    authentication:
+      config_file: "~/.oci/config"
+      profile: "DEFAULT"
+      
+  kubernetes:
+    namespace_resolution:
+      default: "default"
+      monitoring: "monitoring"
+      application: "app"
+      
+    resource_selectors:
+      by_label: "-l app={target}"
+      by_name: "{target}"
+      
+# Global command settings
+settings:
+  timeout_default: 30
+  retry_count: 3
+  retry_delay: 5
+  
+  # Output formatting
+  output_format:
+    json: "--output json"
+    yaml: "--output yaml"
+    table: "--output table"
+    
+  # Security settings
+  allowed_commands:
+    - "docker"
+    - "kubectl" 
+    - "oci"
+    - "curl"
+    - "ps"
+    - "free"
+    - "df"
+    - "netstat"
+    - "ss"
+    
+  restricted_patterns:
+    - "rm -rf /"
+    - "dd if=/dev/zero"
+    - "mkfs"
+    - "fdisk"
+    - "> /dev/sd" 
