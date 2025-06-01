@@ -9,6 +9,7 @@ services:
     build: 
       context: ../market-predictor
       dockerfile: Dockerfile
+      target: runtime
     container_name: market-predictor
     ports:
       - "8000:8000"
@@ -19,6 +20,7 @@ services:
     volumes:
       - ./logs/predictor:/app/logs
       - ../market-predictor/.env:/app/.env:ro  # Mount agent's own .env file
+      - ../market-predictor/src:/app/src:ro    # Mount source code for live updates
     networks:
       - ai-agent-network
     restart: unless-stopped
@@ -34,6 +36,7 @@ services:
     build: 
       context: ../devops-ai-agent
       dockerfile: Dockerfile
+      target: runtime
     container_name: devops-ai-agent
     ports:
       - "8001:8001"
@@ -48,6 +51,7 @@ services:
     volumes:
       - ./logs/agent:/app/logs
       - ../devops-ai-agent/.env:/app/.env:ro  # Mount agent's own .env file
+      - ../devops-ai-agent/src:/app/src:ro    # Mount source code for live updates
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - ai-agent-network
@@ -66,6 +70,7 @@ services:
     build: 
       context: ../coding-ai-agent
       dockerfile: docker/Dockerfile
+      target: runtime
     container_name: coding-ai-agent
     ports:
       - "8002:8002"
@@ -77,6 +82,7 @@ services:
     volumes:
       - ./logs/coding-agent:/app/logs
       - ../coding-ai-agent/.env:/app/.env:ro  # Mount agent's own .env file
+      - ../coding-ai-agent/src:/app/src:ro    # Mount source code for live updates
       - coding-agent-workspaces:/tmp/coding-agent-workspaces
       - /var/run/docker.sock:/var/run/docker.sock
     networks:

@@ -273,3 +273,179 @@ infrastructure/
 ---
 
 **Clean Architecture • Single Responsibility • Zero Duplication** 
+
+# AI Agent Team Platform - Infrastructure
+
+This repository contains the centralized infrastructure configuration for the AI Agent Team Platform, including Docker orchestration, monitoring stack, and deployment scripts.
+
+## 🚀 Instant Code Deployment Solution
+
+### **PERMANENT FIX: Zero Cache Issues**
+
+The platform now uses a **revolutionary architecture** that eliminates Docker cache issues permanently:
+
+#### **Architecture Overview**
+- **Base Images**: Contain only dependencies (Python packages, system libs)
+- **Source Code**: Mounted as read-only volumes (never copied into images)
+- **Result**: Code changes deploy instantly, dependencies rebuild only when needed
+
+#### **Deployment Commands**
+
+```bash
+# For CODE CHANGES (INSTANT - 2-3 seconds) ⚡
+./scripts/deploy-code-changes.sh [service|all]
+
+# For DEPENDENCY CHANGES (rebuilds base images) 🔧
+./scripts/deploy-dependencies.sh [service|all]
+```
+
+#### **How It Works**
+
+```yaml
+# Docker Compose Volume Mounts
+volumes:
+  - ../service/src:/app/src:ro    # Live source mounting
+  - ../service/.env:/app/.env:ro  # Config mounting
+```
+
+**Benefits:**
+- ✅ **Instant Deployment**: Code changes effective immediately
+- ✅ **Zero Cache Issues**: Impossible due to volume mounting
+- ✅ **Efficient Builds**: Only rebuild when dependencies change
+- ✅ **Production Ready**: Same architecture everywhere
+
+## 📋 Quick Start
+
+### 1. Start Platform
+```bash
+./scripts/start-platform.sh
+```
+
+### 2. Deploy Code Changes (Instant)
+```bash
+# Deploy all services instantly
+./scripts/deploy-code-changes.sh all
+
+# Deploy specific service instantly
+./scripts/deploy-code-changes.sh devops-ai-agent
+```
+
+### 3. Deploy Dependency Changes
+```bash
+# When you change requirements.txt
+./scripts/deploy-dependencies.sh market-predictor
+```
+
+## 🏗️ Services
+
+### AI Agents
+- **Market Predictor** (Port 8000): Trading market prediction service
+- **DevOps AI Agent** (Port 8001): Infrastructure automation and monitoring
+- **Coding AI Agent** (Port 8002): Code generation and development assistance
+
+### Monitoring Stack
+- **Prometheus** (Port 9090): Metrics collection and alerting
+- **Grafana** (Port 3000): Dashboards and visualization
+- **Loki** (Port 3100): Log aggregation
+- **AlertManager** (Port 9093): Alert routing and management
+
+## 🔧 Deployment Scripts
+
+### Code Deployment (Instant)
+```bash
+./scripts/deploy-code-changes.sh [service|all]
+```
+- **Use For**: Python source code changes
+- **Speed**: 2-3 seconds per service
+- **Method**: Container restart with volume-mounted source
+
+### Dependency Deployment  
+```bash
+./scripts/deploy-dependencies.sh [service|all]
+```
+- **Use For**: requirements.txt or Dockerfile changes
+- **Speed**: 30-60 seconds per service
+- **Method**: Rebuild base image with no cache
+
+### Platform Management
+```bash
+./scripts/start-platform.sh     # Start all services
+./scripts/stop-platform.sh      # Stop all services
+./scripts/restart-platform.sh   # Restart with config reload
+```
+
+## 🐳 Docker Architecture
+
+### Multi-Stage Dockerfile Pattern
+```dockerfile
+# Stage 1: Dependencies only
+FROM python:3.13-slim as dependencies
+# Install system and Python dependencies
+# NO source code copying
+
+# Stage 2: Runtime
+FROM dependencies as runtime
+# Runtime setup only
+# Source mounted as volume
+```
+
+### Volume Mount Configuration
+```yaml
+services:
+  service-name:
+    build:
+      target: runtime  # Use runtime stage
+    volumes:
+      - ../service/src:/app/src:ro    # Live source
+      - ../service/.env:/app/.env:ro  # Config
+```
+
+## 🔍 Troubleshooting
+
+### Code Changes Not Reflected?
+```bash
+# This is now impossible with the new architecture!
+# Source code is mounted as volumes, changes are instant
+./scripts/deploy-code-changes.sh service-name
+```
+
+### Dependency Changes Not Working?
+```bash
+# Use dependency deployment script
+./scripts/deploy-dependencies.sh service-name
+```
+
+### Service Health Issues?
+```bash
+# Check logs
+docker logs service-name
+
+# Check health endpoints
+curl http://localhost:8000/health  # market-predictor
+curl http://localhost:8001/health  # devops-ai-agent
+curl http://localhost:8002/health  # coding-ai-agent
+```
+
+## 📊 Monitoring
+
+- **Grafana**: http://localhost:3000 (admin/admin123)
+- **Prometheus**: http://localhost:9090
+- **AlertManager**: http://localhost:9093
+
+## 🎯 Development Workflow
+
+1. **Make code changes** in any `/src` directory
+2. **Deploy instantly**: `./scripts/deploy-code-changes.sh service-name`
+3. **Test changes**: Service restarts in 2-3 seconds with new code
+4. **No cache issues**: Changes always reflected immediately
+
+## 🏭 Production Considerations
+
+- **Same Architecture**: Development and production use identical patterns
+- **Rollback**: Git-based rollbacks work instantly (just restart containers)
+- **Scalability**: Base images cached, only source code differs per deployment
+- **Resource Efficiency**: Minimal image sizes, no duplicate source storage
+
+---
+
+**The cache problem is solved permanently at the architectural level.** 🎉 

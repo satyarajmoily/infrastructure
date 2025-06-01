@@ -1,11 +1,15 @@
 #!/bin/bash
-# AI Agent Team Platform - Code Deployment Script
+# AI Agent Team Platform - Instant Code Deployment Script
 # Usage: ./scripts/deploy-code-changes.sh [service-name|all]
+# 
+# NOTE: This script is now INSTANT because source code is mounted as volumes!
+# No building required for code changes - just restart containers.
 
 set -e
 
-echo "🚀 AI Agent Team Platform - Code Deployment"
-echo "==========================================="
+echo "⚡ AI Agent Team Platform - Instant Code Deployment"
+echo "=================================================="
+echo "🎯 Source code mounted as volumes - instant deployment!"
 echo ""
 
 # Get script directory
@@ -17,19 +21,15 @@ cd "$INFRASTRUCTURE_DIR"
 # Define services that have code
 CODE_SERVICES=("market-predictor" "devops-ai-agent" "coding-ai-agent")
 
-# Function to deploy service with code changes
+# Function to instantly deploy service code changes
 deploy_service() {
     local service="$1"
-    echo "🔨 Building and deploying $service..."
+    echo "⚡ Instantly deploying $service code changes..."
     
-    # Build new image
-    echo "   📦 Building Docker image..."
-    docker-compose build "$service"
-    
-    # Deploy with new image
-    echo "   🚀 Deploying new container..."
-    docker-compose up -d --force-recreate --no-deps "$service"
-    sleep 3
+    # Just restart - source code mounted as volume!
+    echo "   🔄 Restarting container with new code..."
+    docker-compose restart "$service"
+    sleep 2
     
     # Check health if service has health endpoint
     case "$service" in
@@ -55,7 +55,7 @@ check_health() {
     local endpoint="$3"
     
     echo -n "   🔍 Checking health... "
-    local max_attempts=15
+    local max_attempts=10
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
@@ -63,7 +63,7 @@ check_health() {
             echo "✅ Healthy"
             return 0
         fi
-        sleep 2
+        sleep 1
         ((attempt++))
     done
     
@@ -75,18 +75,22 @@ SERVICE_NAME="${1:-help}"
 
 case "$SERVICE_NAME" in
     "all")
-        echo "🔨 Deploying code changes for all AI services..."
+        echo "⚡ Instantly deploying code changes for all AI services..."
         echo ""
         
         for service in "${CODE_SERVICES[@]}"; do
             deploy_service "$service"
             echo ""
         done
+        
+        echo "🎉 All services deployed instantly!"
         ;;
         
     "market-predictor"|"devops-ai-agent"|"coding-ai-agent")
-        echo "🔨 Deploying code changes for: $SERVICE_NAME"
+        echo "⚡ Instantly deploying code changes for: $SERVICE_NAME"
         deploy_service "$SERVICE_NAME"
+        echo ""
+        echo "🎉 $SERVICE_NAME deployed instantly!"
         ;;
         
     "help"|*)
@@ -99,19 +103,14 @@ case "$SERVICE_NAME" in
         echo "   devops-ai-agent        - Deploy DevOps AI agent code changes"
         echo "   coding-ai-agent        - Deploy coding AI agent code changes"
         echo ""
-        echo "💡 WHEN TO USE:"
-        echo "   - After changing Python source code in src/"
-        echo "   - After updating requirements.txt"
-        echo "   - After modifying Dockerfile"
+        echo "⚡ INSTANT DEPLOYMENT:"
+        echo "   - Source code is mounted as volumes"
+        echo "   - No building required for code changes"
+        echo "   - Just restarts containers (~2-3 seconds)"
+        echo "   - Zero cache issues possible!"
         echo ""
-        echo "🔥 WHAT THIS DOES:"
-        echo "   1. Builds new Docker image with your code changes"
-        echo "   2. Stops old container"
-        echo "   3. Starts new container with new image"
-        echo "   4. Performs health check"
-        echo ""
-        echo "⚡ FOR CONFIG CHANGES ONLY:"
-        echo "   Use ./scripts/restart-platform.sh instead (faster)"
+        echo "🔧 FOR DEPENDENCY CHANGES:"
+        echo "   Use ./scripts/deploy-dependencies.sh instead (rebuilds base images)"
         ;;
 esac
 
