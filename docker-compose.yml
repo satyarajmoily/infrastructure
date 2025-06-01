@@ -1,5 +1,5 @@
 # AI Agent Platform - Centralized Docker Compose Configuration
-# Single configuration file for all agents with centralized settings
+# Each service reads ONLY from its own .env file - NO environment overrides
 
 version: '3.8'
 
@@ -13,10 +13,6 @@ services:
     container_name: market-predictor
     ports:
       - "8000:8000"
-    environment:
-      - API_HOST=0.0.0.0
-      - API_PORT=8000
-      - SERVICE_NAME=market-predictor
     volumes:
       - ./logs/predictor:/app/logs
       - ../market-predictor/.env:/app/.env:ro  # Mount agent's own .env file
@@ -40,14 +36,6 @@ services:
     container_name: devops-ai-agent
     ports:
       - "8001:8001"
-    environment:
-      - API_HOST=0.0.0.0
-      - API_PORT=8001
-      - SERVICE_NAME=devops-ai-agent
-      # Docker network service URLs (override localhost URLs from .env)
-      - PROMETHEUS_URL=http://prometheus:9090
-      - ALERTMANAGER_URL=http://alertmanager:9093
-      - MARKET_PREDICTOR_URL=http://market-predictor:8000
     volumes:
       - ./logs/agent:/app/logs
       - ../devops-ai-agent/.env:/app/.env:ro  # Mount agent's own .env file
@@ -74,11 +62,6 @@ services:
     container_name: coding-ai-agent
     ports:
       - "8002:8002"
-    environment:
-      - API_HOST=0.0.0.0
-      - API_PORT=8002
-      - SERVICE_NAME=coding-ai-agent
-      - WORKSPACE_BASE_PATH=/tmp/coding-agent-workspaces
     volumes:
       - ./logs/coding-agent:/app/logs
       - ../coding-ai-agent/.env:/app/.env:ro  # Mount agent's own .env file
