@@ -80,6 +80,33 @@ services:
     depends_on:
       - devops-ai-agent
 
+  ai-command-gateway:
+    build: 
+      context: ../ai-command-gateway
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: ai-command-gateway
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./logs/gateway:/app/logs
+      - ../ai-command-gateway/.env:/app/.env:ro  # Mount gateway's own .env file
+      - ../ai-command-gateway/src:/app/src:ro    # Mount source code for live updates
+      - /Users/satyarajmoily/.docker/run/docker.sock:/var/run/docker.sock:rw
+    networks:
+      - ai-agent-network
+    restart: unless-stopped
+    user: "0:0"  # Run as root for Docker socket access on macOS
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - prometheus
+      - alertmanager
+
   # Monitoring Stack
   prometheus:
     image: prom/prometheus:v2.48.0
@@ -202,6 +229,7 @@ services:
       - market-predictor
       - devops-ai-agent
       - coding-ai-agent
+      - ai-command-gateway
       - grafana
     healthcheck:
       test: ["CMD", "nginx", "-t"]

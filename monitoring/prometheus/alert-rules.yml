@@ -39,6 +39,19 @@ groups:
           description: "Coding AI Agent service has been down for more than 30 seconds"
           action_required: "restart_service"
 
+      - alert: AICommandGatewayDown
+        expr: up{job="ai-command-gateway"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: ai-command-gateway
+          alert_type: availability
+        annotations:
+          summary: "AI Command Gateway service is down"
+          description: "AI Command Gateway service has been down for more than 30 seconds"
+          action_required: "restart_service"
+          runbook_url: "https://docs.company.com/runbooks/ai-command-gateway"
+
   - name: service_performance
     rules:
       # High Response Time Alerts
@@ -205,4 +218,67 @@ groups:
         annotations:
           summary: "Container {{ $labels.container_label_com_docker_compose_service }} killed"
           description: "Container has been killed and not seen for over 1 minute"
-          action_required: "restart_container" 
+          action_required: "restart_container"
+
+  - name: ai_command_gateway_alerts
+    rules:
+      # AI Command Gateway Specific Alerts
+      - alert: AICommandGatewayHighErrorRate
+        expr: rate(gateway_requests_total{status!="COMPLETED_SUCCESS"}[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: warning
+          service: ai-command-gateway
+          alert_type: errors
+        annotations:
+          summary: "AI Command Gateway high error rate"
+          description: "AI Command Gateway error rate is {{ $value }} errors per second"
+          action_required: "check_gateway_logs"
+
+      - alert: AICommandGatewayCommandGenerationFailures
+        expr: rate(gateway_command_generation_total{status="failed"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          service: ai-command-gateway
+          alert_type: llm_errors
+        annotations:
+          summary: "AI Command Gateway LLM generation failures"
+          description: "Command generation failure rate is {{ $value }} failures per second"
+          action_required: "check_openai_connectivity"
+
+      - alert: AICommandGatewayHighResponseTime
+        expr: histogram_quantile(0.95, rate(gateway_request_duration_seconds_bucket[5m])) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: ai-command-gateway
+          alert_type: performance
+        annotations:
+          summary: "AI Command Gateway high response time"
+          description: "95th percentile response time is {{ $value }}s"
+          action_required: "investigate_gateway_performance"
+
+      - alert: AICommandGatewayDockerExecutionFailures
+        expr: rate(gateway_command_execution_total{status!="SUCCESS"}[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: warning
+          service: ai-command-gateway
+          alert_type: execution_errors
+        annotations:
+          summary: "AI Command Gateway Docker execution failures"
+          description: "Docker command execution failure rate is {{ $value }} failures per second"
+          action_required: "check_docker_connectivity"
+
+      - alert: AICommandGatewayNoRequests
+        expr: rate(gateway_requests_total[10m]) == 0
+        for: 5m
+        labels:
+          severity: info
+          service: ai-command-gateway
+          alert_type: activity
+        annotations:
+          summary: "AI Command Gateway receiving no requests"
+          description: "No requests received by AI Command Gateway in the last 10 minutes"
+          action_required: "check_service_discovery" 

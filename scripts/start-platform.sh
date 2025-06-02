@@ -58,7 +58,7 @@ sleep 5
 
 # Phase 2: Main AI services
 echo "🤖 Phase 2: Starting AI Agent Services..."
-docker-compose up -d market-predictor devops-ai-agent coding-ai-agent
+docker-compose up -d market-predictor devops-ai-agent coding-ai-agent ai-command-gateway
 sleep 10
 
 # Verify all services
@@ -86,6 +86,7 @@ check_service() {
 check_service "Market Predictor" "8000" "/health"
 check_service "DevOps AI Agent" "8001" "/health"
 check_service "Coding AI Agent" "8002" "/health"
+check_service "AI Command Gateway" "8003" "/health"
 check_service "Prometheus" "9090" "/-/healthy"
 check_service "Grafana" "3000" "/api/health"
 check_service "Loki" "3100" "/ready"
@@ -113,6 +114,7 @@ echo "🌐 ACCESS URLS:"
 echo "   Market Predictor:    http://localhost:8000"
 echo "   DevOps AI Agent:     http://localhost:8001"
 echo "   Coding AI Agent:     http://localhost:8002"
+echo "   AI Command Gateway:  http://localhost:8003"
 echo "   Grafana Dashboard:   http://localhost:3000 (admin/admin123)"
 echo "   Prometheus:          http://localhost:9090"
 echo "   Alertmanager:        http://localhost:9093"

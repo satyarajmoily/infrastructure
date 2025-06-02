@@ -16,7 +16,7 @@ cd "$INFRASTRUCTURE_DIR"
 
 # Define service groups
 MONITORING_SERVICES=("prometheus" "grafana" "loki" "alertmanager" "promtail" "nginx")
-AI_SERVICES=("market-predictor" "devops-ai-agent" "coding-ai-agent")
+AI_SERVICES=("market-predictor" "devops-ai-agent" "coding-ai-agent" "ai-command-gateway")
 ALL_SERVICES=("${MONITORING_SERVICES[@]}" "${AI_SERVICES[@]}")
 
 # Function to restart specific service
@@ -38,6 +38,9 @@ restart_service() {
             ;;
         "coding-ai-agent")
             check_health "$service" "8002" "/health"
+            ;;
+        "ai-command-gateway")
+            check_health "$service" "8003" "/health"
             ;;
         "prometheus")
             check_health "$service" "9090" "/-/healthy"
@@ -146,7 +149,7 @@ case "$SERVICE_NAME" in
         restart_group "AI Services" "${AI_SERVICES[@]}"
         ;;
         
-    "market-predictor"|"devops-ai-agent"|"coding-ai-agent"|"prometheus"|"grafana"|"loki"|"alertmanager"|"promtail"|"nginx")
+    "market-predictor"|"devops-ai-agent"|"coding-ai-agent"|"ai-command-gateway"|"prometheus"|"grafana"|"loki"|"alertmanager"|"promtail"|"nginx")
         echo "🔄 Restarting individual service: $SERVICE_NAME"
         restart_service "$SERVICE_NAME"
         ;;
@@ -164,6 +167,7 @@ case "$SERVICE_NAME" in
         echo "   market-predictor       - Restart market predictor"
         echo "   devops-ai-agent        - Restart DevOps AI agent"
         echo "   coding-ai-agent        - Restart coding AI agent"
+        echo "   ai-command-gateway     - Restart AI command gateway"
         echo "   prometheus             - Restart Prometheus"
         echo "   grafana                - Restart Grafana"
         echo "   loki                   - Restart Loki"

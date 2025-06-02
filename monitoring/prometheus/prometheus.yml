@@ -48,6 +48,17 @@ scrape_configs:
     params:
       format: ['prometheus']
 
+  # AI Command Gateway Service
+  - job_name: 'ai-command-gateway'
+    static_configs:
+      - targets: ['ai-command-gateway:8003']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
   # Prometheus Self-Monitoring
   - job_name: 'prometheus'
     static_configs:

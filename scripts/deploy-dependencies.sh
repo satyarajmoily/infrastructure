@@ -19,7 +19,7 @@ INFRASTRUCTURE_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$INFRASTRUCTURE_DIR"
 
 # Define services that have dependencies
-DEPENDENCY_SERVICES=("market-predictor" "devops-ai-agent" "coding-ai-agent")
+DEPENDENCY_SERVICES=("market-predictor" "devops-ai-agent" "coding-ai-agent" "ai-command-gateway")
 
 # Function to deploy service dependency changes
 deploy_dependencies() {
@@ -45,6 +45,9 @@ deploy_dependencies() {
             ;;
         "coding-ai-agent")
             check_health "$service" "8002" "/health"
+            ;;
+        "ai-command-gateway")
+            check_health "$service" "8003" "/health"
             ;;
         *)
             echo "   ✅ Deployed (no health check available)"
@@ -90,7 +93,7 @@ case "$SERVICE_NAME" in
         echo "🎉 All dependency deployments complete!"
         ;;
         
-    "market-predictor"|"devops-ai-agent"|"coding-ai-agent")
+    "market-predictor"|"devops-ai-agent"|"coding-ai-agent"|"ai-command-gateway")
         echo "🔧 Rebuilding dependencies for: $SERVICE_NAME"
         deploy_dependencies "$SERVICE_NAME"
         echo ""
@@ -106,6 +109,7 @@ case "$SERVICE_NAME" in
         echo "   market-predictor       - Rebuild market predictor dependencies"
         echo "   devops-ai-agent        - Rebuild DevOps AI agent dependencies"
         echo "   coding-ai-agent        - Rebuild coding AI agent dependencies"
+        echo "   ai-command-gateway     - Rebuild AI command gateway dependencies"
         echo ""
         echo "🔧 WHEN TO USE:"
         echo "   - After changing requirements.txt"

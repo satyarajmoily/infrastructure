@@ -19,7 +19,7 @@ INFRASTRUCTURE_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$INFRASTRUCTURE_DIR"
 
 # Define services that have code
-CODE_SERVICES=("market-predictor" "devops-ai-agent" "coding-ai-agent")
+CODE_SERVICES=("market-predictor" "devops-ai-agent" "coding-ai-agent" "ai-command-gateway")
 
 # Function to instantly deploy service code changes
 deploy_service() {
@@ -41,6 +41,9 @@ deploy_service() {
             ;;
         "coding-ai-agent")
             check_health "$service" "8002" "/health"
+            ;;
+        "ai-command-gateway")
+            check_health "$service" "8003" "/health"
             ;;
         *)
             echo "   ✅ Deployed (no health check available)"
@@ -86,7 +89,7 @@ case "$SERVICE_NAME" in
         echo "🎉 All services deployed instantly!"
         ;;
         
-    "market-predictor"|"devops-ai-agent"|"coding-ai-agent")
+    "market-predictor"|"devops-ai-agent"|"coding-ai-agent"|"ai-command-gateway")
         echo "⚡ Instantly deploying code changes for: $SERVICE_NAME"
         deploy_service "$SERVICE_NAME"
         echo ""
@@ -102,6 +105,7 @@ case "$SERVICE_NAME" in
         echo "   market-predictor       - Deploy market predictor code changes"
         echo "   devops-ai-agent        - Deploy DevOps AI agent code changes"
         echo "   coding-ai-agent        - Deploy coding AI agent code changes"
+        echo "   ai-command-gateway     - Deploy AI command gateway code changes"
         echo ""
         echo "⚡ INSTANT DEPLOYMENT:"
         echo "   - Source code is mounted as volumes"
