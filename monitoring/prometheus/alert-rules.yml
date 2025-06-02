@@ -4,27 +4,27 @@ groups:
       # Service Down Alerts
       - alert: MarketPredictorDown
         expr: up{job="market-predictor"} == 0
-        for: 30s
+        for: 5s
         labels:
           severity: critical
           service: market-predictor
           alert_type: availability
         annotations:
           summary: "Market Predictor service is down"
-          description: "Market Predictor service has been down for more than 30 seconds"
+          description: "Market Predictor service has been down for more than 5 seconds"
           action_required: "restart_service"
           runbook_url: "https://docs.company.com/runbooks/market-predictor"
 
       - alert: DevOpsAIAgentDown
         expr: up{job="devops-ai-agent"} == 0
-        for: 30s
+        for: 5s
         labels:
           severity: critical
           service: devops-ai-agent
           alert_type: availability
         annotations:
           summary: "DevOps AI Agent service is down"
-          description: "DevOps AI Agent service has been down for more than 30 seconds"
+          description: "DevOps AI Agent service has been down for more than 5 seconds"
           action_required: "restart_service"
 
       - alert: CodingAIAgentDown
@@ -41,14 +41,14 @@ groups:
 
       - alert: AICommandGatewayDown
         expr: up{job="ai-command-gateway"} == 0
-        for: 30s
+        for: 5s
         labels:
           severity: critical
           service: ai-command-gateway
           alert_type: availability
         annotations:
           summary: "AI Command Gateway service is down"
-          description: "AI Command Gateway service has been down for more than 30 seconds"
+          description: "AI Command Gateway service has been down for more than 5 seconds"
           action_required: "restart_service"
           runbook_url: "https://docs.company.com/runbooks/ai-command-gateway"
 
