@@ -1,2 +1,27 @@
-*.backup.*
+# Generated configuration files (contain secrets)
+monitoring/alertmanager/alertmanager.yml
+
+# Docker volumes and data
+*_data/
+
+# Environment files
 .env
+
+# Log files
+logs/
+*.log
+
+# Backup files
+*.bak
+*.backup
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

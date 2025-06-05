@@ -37,7 +37,7 @@ route:
 receivers:
   - name: 'slack-only'
     slack_configs:
-      - api_url: 'https://hooks.slack.com/services/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'
+      - api_url: '${SLACK_WEBHOOK_URL}'
         channel: '#alerts'
         title: '🚨 Alert: {{ .GroupLabels.alertname }}'
         text: |
@@ -52,7 +52,7 @@ receivers:
 
   - name: 'dual-notifications'
     slack_configs:
-      - api_url: 'https://hooks.slack.com/services/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'
+      - api_url: '${SLACK_WEBHOOK_URL}'
         channel: '#alerts'
         title: '⚠️ Alert: {{ .GroupLabels.alertname }}'
         text: |
@@ -71,7 +71,7 @@ receivers:
 
   - name: 'default-notifications'
     slack_configs:
-      - api_url: 'https://hooks.slack.com/services/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'
+      - api_url: '${SLACK_WEBHOOK_URL}'
         channel: '#alerts'
         title: '📢 Alert: {{ .GroupLabels.alertname }}'
         text: |

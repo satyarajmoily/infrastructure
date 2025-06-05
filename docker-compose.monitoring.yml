@@ -62,8 +62,8 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./market-predictor/docker/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./market-predictor/docker/alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -85,7 +85,7 @@ services:
     ports:
       - "9093:9093"
     volumes:
-      - ./market-predictor/docker/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
       - alertmanager_data:/alertmanager
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'

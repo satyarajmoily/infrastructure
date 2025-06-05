@@ -1,0 +1,56 @@
+# Prometheus Alert Rules for Market Predictor
+groups:
+  - name: market_predictor_alerts
+    rules:
+      # Service availability alerts
+      - alert: MarketPredictorDown
+        expr: up{job="market-predictor"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: market-predictor
+        annotations:
+          summary: "Market Predictor service is down"
+          description: "The Market Predictor service has been down for more than 1 minute"
+          runbook_url: "https://docs.example.com/runbooks/market-predictor-down"
+
+      - alert: MarketPredictorHighResponseTime
+        expr: http_request_duration_seconds{job="market-predictor", quantile="0.95"} > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: market-predictor
+        annotations:
+          summary: "Market Predictor high response time"
+          description: "95th percentile response time is {{ $value }}s for more than 5 minutes"
+          runbook_url: "https://docs.example.com/runbooks/high-response-time"
+
+      - alert: MarketPredictorHighErrorRate
+        expr: rate(http_requests_total{job="market-predictor", status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: market-predictor
+        annotations:
+          summary: "Market Predictor high error rate"
+          description: "Error rate is {{ $value | humanizePercentage }} for more than 2 minutes"
+
+      - alert: MarketPredictorMemoryUsage
+        expr: process_resident_memory_bytes{job="market-predictor"} / 1024 / 1024 > 512
+        for: 10m
+        labels:
+          severity: warning
+          service: market-predictor
+        annotations:
+          summary: "Market Predictor high memory usage"
+          description: "Memory usage is {{ $value }}MB for more than 10 minutes"
+
+      - alert: MarketPredictorHealthCheckFailing
+        expr: service_health_checks_total{job="market-predictor"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: market-predictor
+        annotations:
+          summary: "Market Predictor health checks failing"
+          description: "No successful health checks in the last 30 seconds" 
